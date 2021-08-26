@@ -1,15 +1,17 @@
-from PySide2.QtWidgets import QWidget, QPushButton, QMessageBox, QLabel, \
-    QVBoxLayout, QHBoxLayout, QLineEdit, QFormLayout
+from PySide2.QtWidgets import *
 from PySide2.QtCore import Qt
-from PySide2.QtGui import QTextLine
 from package.PlotWidget import *
 from package.Eq_parser import *
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
-class Window(QWidget):
+
+class Window(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Equation Plotter")
-        self.setGeometry(300, 300, 500, 500)
+        self.setGeometry(300, 300, 700, 700)
+        self.setCentralWidget(QWidget(self))
+        
         self.equationLabel = QLabel("Equation:")
         self.startLabel = QLabel("Start:")
         self.endLabel = QLabel("End:")
@@ -32,39 +34,57 @@ class Window(QWidget):
         self.formLayout.addRow(self.startLabel,self.startLine)
         self.formLayout.addRow(self.endLabel,self.endLine)
 
-
-
         self.layout.addLayout(self.formLayout)
         self.layout.addWidget(self.plotPushButton, Alignment=Qt.AlignTop)
-        self.setLayout(self.layout)
-        self.plotWidget = PlotWidget(10, 10)
-
-
-
-
+        self.centralWidget().setLayout(self.layout)
+        self.plotWidget = PlotWidget(9, 9)
 
         self.plotPushButton.clicked.connect(self.plotGraph)
 
     def plotGraph(self):
-        # delattr(self, "plotWidget")
-        self.plotWidget.setParent(None)
-        self.plotWidget = PlotWidget(10, 10)
+        if hasattr(self,"plotWidget"):
+            self.plotWidget.setParent(None)
+            delattr(self, "plotWidget")
+
+        if hasattr(self,"toolbar"):
+            self.toolbar.setParent(None)
+            delattr(self, "toolbar")
 
         equation = self.equationLine.text()
-        start = float(self.startLine.text())
-        end = float(self.endLine.text())
-        step = float(self.stepLine.text())
-        x,y = eq_parser(equation,start,end,step)
+        self.plotWidget = PlotWidget(9, 9)
+        self.toolbar = NavigationToolbar(self.plotWidget, self)
+
+        try:
+            start = float(self.startLine.text())
+            end = float(self.endLine.text())
+            step = float(self.stepLine.text())
+            if(start>end):
+                raise RuntimeError
+        except:
+            error = QMessageBox()
+            error.setIcon(QMessageBox.Warning)
+            error.setWindowTitle("Error")
+            error.setText("<b>invalid input</b>")
+            error.setInformativeText("start,end & step must be numbers\n\nstart must be less than end\n")
+            error.exec()
+            return
+
+
+        try:
+            x,y = eq_parser(equation,start,end,step)
+        except:
+            error = QMessageBox()
+            error.setIcon(QMessageBox.Warning)
+            error.setWindowTitle("Error")
+            error.setText("<b>invalid input</b>")
+            error.setInformativeText("Wrong Equation Format\nEquation must be function of x\n ")
+            error.exec()
+            return
+
         self.plotWidget.addPlot(x,y)
         self.layout.insertWidget(2,self.plotWidget)
+        self.layout.insertWidget(2,self.toolbar)
 
 
 
-
-
-
-# x, y = eq_parser("sin(x)")
-# fig = plt.figure(figsize=(10,10))
-# plt.plot(x, y)
-# plt.show()
 
