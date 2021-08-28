@@ -37,7 +37,6 @@ class Window(QMainWindow):
         self.layout.addLayout(self.formLayout)
         self.layout.addWidget(self.plotPushButton, Alignment=Qt.AlignTop)
         self.centralWidget().setLayout(self.layout)
-        self.plotWidget = PlotWidget(9, 9)
 
         self.plotPushButton.clicked.connect(self.plotGraph)
 
@@ -61,24 +60,24 @@ class Window(QMainWindow):
             if(start>end):
                 raise RuntimeError
         except:
-            error = QMessageBox()
-            error.setIcon(QMessageBox.Warning)
-            error.setWindowTitle("Error")
-            error.setText("<b>invalid input</b>")
-            error.setInformativeText("start,end & step must be numbers\n\nstart must be less than end\n")
-            error.exec()
+            self.error = QMessageBox()
+            self.error.setIcon(QMessageBox.Warning)
+            self.error.setWindowTitle("Parameters Error")
+            self.error.setText("<b>invalid input</b>")
+            self.error.setInformativeText("start,end & step must be numbers\n\nstart must be less than end\n")
+            self.error.exec()
             return
 
 
         try:
             x,y = eq_parser(equation,start,end,step)
         except:
-            error = QMessageBox()
-            error.setIcon(QMessageBox.Warning)
-            error.setWindowTitle("Error")
-            error.setText("<b>invalid input</b>")
-            error.setInformativeText("Wrong Equation Format\nEquation must be function of x\n ")
-            error.exec()
+            self.error = QMessageBox()
+            self.error.setIcon(QMessageBox.Warning)
+            self.error.setWindowTitle("Equation Error")
+            self.error.setText("<b>invalid input</b>")
+            self.error.setInformativeText("Wrong Equation Format\nEquation must be function of x\n ")
+            self.error.exec()
             return
 
         self.plotWidget.addPlot(x,y)
